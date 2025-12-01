@@ -4,7 +4,6 @@ package mycheck
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 	"unicode"
 )
@@ -57,7 +56,6 @@ func checkErrOfNumber(input string) bool {
 }
 
 func checkErrOfLongLine(input string) bool {
-	fmt.Println(len(input))
 	if len(input) > 20 {
 		return true
 	}
