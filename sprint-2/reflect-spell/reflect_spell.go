@@ -25,25 +25,39 @@ func CastToAll(spell Spell, objects []interface{}) {
 }
 
 func CastTo(spell Spell, object interface{}) {
+	if object == nil {
+		return
+	}
+
 	val := reflect.ValueOf(object)
+
+	if !val.IsValid() {
+		return
+	}
+
+	if val.IsNil() {
+		return
+	}
 
 	if val.Kind() == reflect.Ptr {
 		val = val.Elem()
 	}
+
 	if val.Kind() != reflect.Struct {
 		return
 	}
 
 	field := val.FieldByName(spell.Char())
-	if field.IsValid() {
-		if field.CanSet() {
-			switch field.Kind() {
-			case reflect.Int:
-				fvalue := field.Int() + int64(spell.Value())
-				field.SetInt(fvalue)
-			}
-		}
+	if !field.IsValid() || !field.CanSet() {
+		return
 	}
+	if field.Kind() != reflect.Int {
+		return
+	}
+
+	fvalue := field.Int() + int64(spell.Value())
+	field.SetInt(fvalue)
+
 }
 
 type spell struct {
