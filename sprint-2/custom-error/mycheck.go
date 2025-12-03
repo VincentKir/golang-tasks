@@ -12,41 +12,40 @@ var FoundNumbers = errors.New("found numbers")
 var LineIsTooLong = errors.New("line is too long")
 var NoTwoSpaces = errors.New("no two spaces")
 
-type MyError struct {
-	errors []error
-}
+type MyError []error
 
 func (m MyError) Error() string {
-	var str []string
-	for _, err := range m.errors {
-		str = append(str, err.Error())
+	str := make([]string, len(m))
+
+	for i, err := range m {
+		str[i] = err.Error()
 	}
 	return strings.Join(str, ";")
 }
 
 func MyCheck(input string) error {
-	err := MyError{}
+	var err MyError
 
-	if checkErrOfNumber(input) {
-		err.errors = append(err.errors, FoundNumbers)
+	if hasNumber(input) {
+		err = append(err, FoundNumbers)
 	}
 
-	if checkErrOfLongLine(input) {
-		err.errors = append(err.errors, LineIsTooLong)
+	if isLongLine(input) {
+		err = append(err, LineIsTooLong)
 	}
 
-	if checkErrOfTwoSpaces(input) {
-		err.errors = append(err.errors, NoTwoSpaces)
+	if !hasExactlyTwoSpaces(input) {
+		err = append(err, NoTwoSpaces)
 	}
 
-	if err.errors != nil {
+	if err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func checkErrOfNumber(input string) bool {
+func hasNumber(input string) bool {
 	for _, i := range input {
 		if unicode.IsDigit(i) {
 			return true
@@ -55,21 +54,24 @@ func checkErrOfNumber(input string) bool {
 	return false
 }
 
-func checkErrOfLongLine(input string) bool {
+func isLongLine(input string) bool {
 	if len(input) > 20 {
 		return true
 	}
 	return false
 }
 
-func checkErrOfTwoSpaces(input string) bool {
+func hasExactlyTwoSpaces(input string) bool {
 	spaces := 0
 	for _, i := range input {
 		if unicode.IsSpace(i) {
 			spaces++
 		}
+		if spaces > 2 {
+			return false
+		}
 	}
-	if spaces == 2 {
+	if spaces < 2 {
 		return false
 	}
 	return true
