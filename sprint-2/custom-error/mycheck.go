@@ -26,7 +26,9 @@ func (m MyError) Error() string {
 func MyCheck(input string) error {
 	var err MyError
 
-	if hasNumber(input) {
+	hasErrNum, hasErrNoTwoSpace := checkNumAndSpaces(input)
+
+	if hasErrNum {
 		err = append(err, FoundNumbers)
 	}
 
@@ -34,7 +36,7 @@ func MyCheck(input string) error {
 		err = append(err, LineIsTooLong)
 	}
 
-	if !hasExactlyTwoSpaces(input) {
+	if hasErrNoTwoSpace {
 		err = append(err, NoTwoSpaces)
 	}
 
@@ -45,15 +47,6 @@ func MyCheck(input string) error {
 	return nil
 }
 
-func hasNumber(input string) bool {
-	for _, i := range input {
-		if unicode.IsDigit(i) {
-			return true
-		}
-	}
-	return false
-}
-
 func isLongLine(input string) bool {
 	if len(input) > 20 {
 		return true
@@ -61,18 +54,31 @@ func isLongLine(input string) bool {
 	return false
 }
 
-func hasExactlyTwoSpaces(input string) bool {
+func checkNumAndSpaces(input string) (bool, bool) {
 	spaces := 0
+	err_space := false
+	err_num := false
 	for _, i := range input {
+		if spaces > 2 {
+			err_space = true
+		}
+
+		if err_num && err_space {
+			return err_num, err_space
+		}
+
 		if unicode.IsSpace(i) {
 			spaces++
+			continue
 		}
-		if spaces > 2 {
-			return false
+
+		if unicode.IsDigit(i) {
+			err_num = true
 		}
+
 	}
 	if spaces < 2 {
-		return false
+		err_space = true
 	}
-	return true
+	return err_num, err_space
 }
