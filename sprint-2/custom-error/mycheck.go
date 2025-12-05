@@ -48,10 +48,7 @@ func MyCheck(input string) error {
 }
 
 func isLongLine(input string) bool {
-	if len(input) > 20 {
-		return true
-	}
-	return false
+	return len(input) > 20
 }
 
 func checkNumAndSpaces(input string) (bool, bool) {
