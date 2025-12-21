@@ -11,14 +11,17 @@ func FindMiddle(head *Node) *Node {
 	}
 
 	middle := head
-	tmp := head
-	count := 1
-	for tmp != nil {
-		if count%2 == 0 {
-			middle = middle.Next
+	node := head.Next
+
+	for node != nil {
+		middle = middle.Next
+
+		if node.Next == nil || node.Next.Next == nil {
+			break
 		}
-		tmp = tmp.Next
-		count++
+
+		node = node.Next.Next
+
 	}
 	return middle
 }
