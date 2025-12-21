@@ -4,69 +4,64 @@ import (
 	"slices"
 )
 
-type Stack []string
+type Stack []rune
 
 // Добавление элемента
-func (s Stack) push(str string) Stack {
-	return append(s, str)
+func (s *Stack) push(str rune) *Stack {
+	*s = append(*s, str)
+	return s
 }
 
-// Удаление элемента с вершины стека
-func (s Stack) pop() Stack {
-	return s[:len(s)-1]
-}
+// Удаление элемента с вершины стека и возвращение Top элемента
+func (s *Stack) pop() rune {
+	sizeStack := len(*s)
 
-// Просмотр последнего элемента (без удаления)
-func (s Stack) top() string {
-	if len(s) > 0 {
-		return s[len(s)-1]
+	var topElement rune
+
+	if sizeStack > 0 {
+		lastIndex := sizeStack - 1
+		topElement = (*s)[lastIndex]
+		*s = (*s)[:lastIndex]
 	}
-	return ""
+	return topElement
 }
 
-var containsSymbols = map[string]string{
-	")": "(",
-	"}": "{",
-	"]": "[",
+var containsSymbols = map[rune]rune{
+	')': '(',
+	'}': '{',
+	']': '[',
 }
 
-var containsSymbolsOpen = []string{
-	"(",
-	"{",
-	"[",
+var containsSymbolsOpen = []rune{
+	'(',
+	'{',
+	'[',
 }
 
-var containsSymbolsClose = []string{
-	")",
-	"}",
-	"]",
+var containsSymbolsClose = []rune{
+	')',
+	'}',
+	']',
 }
 
 func Balance(s string) bool {
 	stack := make(Stack, 0)
 	for _, str := range s {
-		str := string(str)
 		if slices.Contains(containsSymbolsOpen, str) {
-			stack = stack.push(str)
+			stack.push(str)
 			continue
 		}
 
 		if slices.Contains(containsSymbolsClose, str) {
 			symbolOpen := containsSymbols[str]
-			top := stack.top()
+			top := stack.pop()
 
 			if top != symbolOpen {
 				return false
 			}
-
-			stack = stack.pop()
 		}
 	}
 
-	if len(stack) == 0 {
-		return true
-	}
-
-	return false
+	return stack.pop() == 0
 
 }
