@@ -31,27 +31,21 @@ func MergeLists(list1 *Node, list2 *Node) *Node {
 
 		if list1 == nil {
 			nodeMerdgeList.Next = list2
-			list2 = list2.Next
-			nodeMerdgeList = nodeMerdgeList.Next
-			continue
+			break
 		}
 
 		if list2 == nil {
 			nodeMerdgeList.Next = list1
-			list1 = list1.Next
-			nodeMerdgeList = nodeMerdgeList.Next
-			continue
+			break
+			
 		}
 
 		if list1.Val < list2.Val {
 			nodeMerdgeList.Next = list1
 			list1 = list1.Next
 			nodeMerdgeList = nodeMerdgeList.Next
-			continue
 
-		}
-
-		if list1.Val > list2.Val {
+		} else {
 			nodeMerdgeList.Next = list2
 			list2 = list2.Next
 			nodeMerdgeList = nodeMerdgeList.Next
