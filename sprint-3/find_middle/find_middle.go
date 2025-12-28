@@ -6,6 +6,22 @@ type Node struct {
 }
 
 func FindMiddle(head *Node) *Node {
-	// TODO: implement me
-	return nil
+	if head == nil {
+		return nil
+	}
+
+	middle := head
+	node := head.Next
+
+	for node != nil {
+		middle = middle.Next
+
+		if node.Next == nil || node.Next.Next == nil {
+			break
+		}
+
+		node = node.Next.Next
+	}
+	
+	return middle
 }
