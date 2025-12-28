@@ -21,7 +21,7 @@ func FindMiddle(head *Node) *Node {
 		}
 
 		node = node.Next.Next
-
 	}
+	
 	return middle
 }

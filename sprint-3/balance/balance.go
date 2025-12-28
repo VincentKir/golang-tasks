@@ -7,9 +7,8 @@ import (
 type Stack []rune
 
 // Добавление элемента
-func (s *Stack) push(str rune) *Stack {
+func (s *Stack) push(str rune) {
 	*s = append(*s, str)
-	return s
 }
 
 // Удаление элемента с вершины стека и возвращение Top элемента
