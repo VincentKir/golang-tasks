@@ -36,12 +36,12 @@ type Circle struct {
 	t      string
 }
 
-func (сircle *Circle) Type() string {
-	return сircle.t
+func (circle *Circle) Type() string {
+	return circle.t
 }
 
-func (сircle *Circle) Area() float64 {
-	return pi * (сircle.radius * сircle.radius)
+func (circle *Circle) Area() float64 {
+	return pi * (circle.radius * circle.radius)
 }
 
 func NewCircle(radius float64, t string) *Circle {
