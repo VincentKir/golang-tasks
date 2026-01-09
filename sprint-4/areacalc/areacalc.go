@@ -12,54 +12,50 @@ type Shape interface {
 }
 
 type Rectangle struct {
-	Shape
-	side_a float64
-	side_b float64
-	t      string
+	sideA float64
+	sideB float64
+	t     string
 }
 
-func (rectangle *Rectangle) Type() string {
+func (rectangle Rectangle) Area() float64 {
+	return rectangle.sideA * rectangle.sideB
+}
+
+func (rectangle Rectangle) Type() string {
 	return rectangle.t
 }
 
-func (rectangle *Rectangle) Area() float64 {
-	return rectangle.side_a * rectangle.side_b
-}
-
-func NewRectangle(side_a float64, side_b float64, t string) *Rectangle {
-	return &Rectangle{side_a: side_a, side_b: side_b, t: t}
+func NewRectangle(sideA float64, sideB float64, t string) *Rectangle {
+	var _ Shape = Rectangle{}
+	return &Rectangle{sideA: sideA, sideB: sideB, t: t}
 }
 
 type Circle struct {
-	Shape
 	radius float64
 	t      string
 }
 
-func (circle *Circle) Type() string {
+func (circle Circle) Type() string {
 	return circle.t
 }
 
-func (circle *Circle) Area() float64 {
+func (circle Circle) Area() float64 {
 	return pi * (circle.radius * circle.radius)
 }
 
 func NewCircle(radius float64, t string) *Circle {
+	var _ Shape = Circle{}
 	return &Circle{radius: radius, t: t}
 }
 
 func AreaCalculator(figures []Shape) (string, float64) {
-	var str strings.Builder
+	str := make([]string, 0)
 	var sum float64
-	last_figure := len(figures) - 1
 
-	for i, figure := range figures {
+	for _, figure := range figures {
 		sum += figure.Area()
-		str.WriteString(figure.Type())
-		if i != last_figure {
-			str.WriteString("-")
-		}
+		str = append(str, figure.Type())
 	}
 
-	return str.String(), sum
+	return strings.Join(str, "-"), sum
 }
