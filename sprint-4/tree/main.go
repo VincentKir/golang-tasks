@@ -88,7 +88,10 @@ func main() {
 func dirTree(out io.Writer, path string, printFiles bool) error {
 	// Function to implement, signature is given, don't touch it.
 
-	recursiveLookupDir(out, path, printFiles, ROOT_PREFIX)
+	err := recursiveLookupDir(out, path, printFiles, ROOT_PREFIX)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -96,11 +99,12 @@ func dirTree(out io.Writer, path string, printFiles bool) error {
 func recursiveLookupDir(out io.Writer, path string, printFile bool, prefix string) error {
 	dirEntres, err := os.ReadDir(path)
 	if err != nil {
-		fmt.Println("Error Read Dir", path)
-		return err
+		return fmt.Errorf(
+			"Error Read Dir: %s \n Error: %w", path, err,
+		)
 	}
 
-	if printFile != true {
+	if !printFile {
 		dirEntres = excludeFiles(dirEntres)
 	}
 
@@ -167,17 +171,16 @@ func printlnFile(out io.Writer, file os.DirEntry, fileName string) error {
 	out.Write([]byte(fileName))
 	fileinfo, err := file.Info()
 	if err != nil {
-		fmt.Println("Error Get Stat File", fileName)
-		return err
+		return fmt.Errorf(
+			"Error Get Stat File: %s \n Error: %w", fileName, err,
+		)
 	}
 	sizeFile := fileinfo.Size()
-	out.Write([]byte(" ("))
 	if sizeFile == 0 {
-		out.Write([]byte(EMPTY_FILE))
+		fmt.Fprintf(out, " (%s)", EMPTY_FILE)
 	} else {
-		fmt.Fprintf(out, "%db", sizeFile)
+		fmt.Fprintf(out, " (%db)", sizeFile)
 	}
-	out.Write([]byte(")"))
 	out.Write([]byte(EOL))
 
 	return nil
