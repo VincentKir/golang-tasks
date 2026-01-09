@@ -8,31 +8,20 @@ import (
 
 func supportType(kind reflect.Kind) bool {
 	switch kind {
-	case reflect.Slice:
-		return true
-	case reflect.Map:
-		return true
-	case reflect.String:
-		return true
-	case reflect.Int:
-		return true
-	case reflect.Int8:
-		return true
-	case reflect.Int16:
-		return true
-	case reflect.Int32:
-		return true
-	case reflect.Int64:
-		return true
-	case reflect.Uint:
-		return true
-	case reflect.Uint8:
-		return true
-	case reflect.Uint16:
-		return true
-	case reflect.Uint32:
-		return true
-	case reflect.Uint64:
+	case
+		reflect.Slice,
+		reflect.Map,
+		reflect.String,
+		reflect.Int,
+		reflect.Int8,
+		reflect.Int16,
+		reflect.Int32,
+		reflect.Int64,
+		reflect.Uint,
+		reflect.Uint8,
+		reflect.Uint16,
+		reflect.Uint32,
+		reflect.Uint64:
 		return true
 	default:
 		return false
@@ -41,9 +30,9 @@ func supportType(kind reflect.Kind) bool {
 
 func useDeepEqual(kind reflect.Kind) bool {
 	switch kind {
-	case reflect.Slice:
-		return true
-	case reflect.Map:
+	case
+		reflect.Slice,
+		reflect.Map:
 		return true
 	default:
 		return false
@@ -54,10 +43,10 @@ func getFormatAndArgs(head string, operator string, expected, actual interface{}
 	if len(msgAndArgs) > 0 {
 		return msgAndArgs
 	}
-	default_format := "%s:\nexpected: %v\nactual	: %v\nmessage	: %v %s %v"
+	defaultFormat := "%s:\nexpected: %v\nactual	: %v\nmessage	: %v %s %v"
 	msgAndArgs = append(
 		msgAndArgs,
-		default_format,
+		defaultFormat,
 		head,
 		expected,
 		actual,
@@ -79,12 +68,12 @@ func AssertEqual(t T, expected, actual interface{}, msgAndArgs ...interface{}) b
 	msgAndArgs = getFormatAndArgs("equal", "!=", expected, actual, msgAndArgs...)
 
 	if expected == nil && actual == nil {
-		return true
+		t.Errorf(msgAndArgs[0].(string), msgAndArgs[1:]...)
+		return false
 	}
 
 	if expected == nil || actual == nil {
-		t.Errorf(msgAndArgs[0].(string), msgAndArgs[1:]...)
-		return false
+		return true
 	}
 
 	expected_value := reflect.ValueOf(expected)
