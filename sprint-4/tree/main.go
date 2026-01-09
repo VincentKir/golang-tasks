@@ -25,8 +25,11 @@ https://stackoverflow.com/questions/32151776/visualize-tree-in-bash-like-the-out
 */
 
 import (
+	"fmt"
 	"io"
 	"os"
+	"path/filepath"
+	"sort"
 )
 
 /*
@@ -57,6 +60,8 @@ const (
 	LAST_TAB        = "\t"
 	EMPTY_FILE      = "empty"
 	ROOT_PREFIX     = ""
+	LEVEL_SPACE     = "    "
+	LEVEL_PIPE      = "|   "
 
 	USE_RECURSION_ENV_KEY = "RECURSIVE_TREE"
 	USE_RECURSION_ENV_VAL = "YES"
@@ -82,6 +87,98 @@ func main() {
 // Write `path` dir listing to `out`. If `prinFiles` is set, files is listed along with directories.
 func dirTree(out io.Writer, path string, printFiles bool) error {
 	// Function to implement, signature is given, don't touch it.
+
+	recursiveLookupDir(out, path, printFiles, ROOT_PREFIX)
+
+	return nil
+}
+
+func recursiveLookupDir(out io.Writer, path string, printFile bool, prefix string) error {
+	dirEntres, err := os.ReadDir(path)
+	if err != nil {
+		fmt.Println("Error Read Dir", path)
+		return err
+	}
+
+	if printFile != true {
+		dirEntres = excludeFiles(dirEntres)
+	}
+
+	sort.Slice(
+		dirEntres,
+		func(i, j int) bool {
+			return dirEntres[i].Name() < dirEntres[j].Name()
+		},
+	)
+
+	lastEntry := len(dirEntres) - 1
+
+	for i, obj := range dirEntres {
+		objPath := filepath.Join(path, obj.Name())
+		objName := obj.Name()
+		isLastEntry := i == lastEntry
+
+		printTrunk(out, isLastEntry, prefix)
+		levelPrefix := getLevelPrefix(isLastEntry, prefix)
+
+		if obj.IsDir() {
+			printlnDir(out, objName)
+			recursiveLookupDir(out, objPath, printFile, levelPrefix)
+			continue
+		}
+
+		printlnFile(out, obj, objName)
+
+	}
+	return nil
+}
+
+func excludeFiles(dirEntres []os.DirEntry) []os.DirEntry {
+	var objs []os.DirEntry
+	for _, entry := range dirEntres {
+		if entry.IsDir() {
+			objs = append(objs, entry)
+		}
+	}
+	return objs
+}
+
+func getLevelPrefix(isLastEntry bool, prefix string) string {
+	if isLastEntry {
+		return prefix + LAST_TAB
+	}
+	return prefix + TRUNC_TAB
+}
+
+func printTrunk(out io.Writer, isLastEntry bool, levelPrefix string) {
+	if isLastEntry {
+		out.Write([]byte(levelPrefix + LAST_BRANCH))
+	} else {
+		out.Write([]byte(levelPrefix + BRANCHING_TRUNK))
+	}
+}
+
+func printlnDir(out io.Writer, dirName string) {
+	out.Write([]byte(dirName))
+	out.Write([]byte(EOL))
+}
+
+func printlnFile(out io.Writer, file os.DirEntry, fileName string) error {
+	out.Write([]byte(fileName))
+	fileinfo, err := file.Info()
+	if err != nil {
+		fmt.Println("Error Get Stat File", fileName)
+		return err
+	}
+	sizeFile := fileinfo.Size()
+	out.Write([]byte(" ("))
+	if sizeFile == 0 {
+		out.Write([]byte(EMPTY_FILE))
+	} else {
+		fmt.Fprintf(out, "%db", sizeFile)
+	}
+	out.Write([]byte(")"))
+	out.Write([]byte(EOL))
 
 	return nil
 }
