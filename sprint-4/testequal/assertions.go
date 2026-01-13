@@ -4,10 +4,12 @@ package testequal
 
 import (
 	"reflect"
+	"slices"
 )
 
-func supportType(kind reflect.Kind) bool {
-	switch kind {
+func supportType(value any) bool {
+	rValue := reflect.ValueOf(value)
+	switch rValue.Kind() {
 	case
 		reflect.Slice,
 		reflect.Map,
@@ -28,33 +30,20 @@ func supportType(kind reflect.Kind) bool {
 	}
 }
 
-func useDeepEqual(kind reflect.Kind) bool {
-	switch kind {
-	case
-		reflect.Slice,
-		reflect.Map:
-		return true
-	default:
-		return false
-	}
-}
-
-func getFormatAndArgs(head string, operator string, expected, actual interface{}, msgAndArgs ...interface{}) []interface{} {
+func getFormatAndArgs(head string, operator string, expected, actual interface{}, msgAndArgs ...interface{}) (string, []interface{}) {
 	if len(msgAndArgs) > 0 {
-		return msgAndArgs
+		return msgAndArgs[0].(string), msgAndArgs[1:]
 	}
 	defaultFormat := "%s:\nexpected: %v\nactual	: %v\nmessage	: %v %s %v"
-	msgAndArgs = append(
-		msgAndArgs,
-		defaultFormat,
+	args := []interface{}{
 		head,
 		expected,
 		actual,
 		expected,
 		operator,
 		actual,
-	)
-	return msgAndArgs
+	}
+	return defaultFormat, args
 
 }
 
@@ -65,44 +54,14 @@ func getFormatAndArgs(head string, operator string, expected, actual interface{}
 // Returns true iff arguments are equal.
 func AssertEqual(t T, expected, actual interface{}, msgAndArgs ...interface{}) bool {
 	t.Helper()
-	msgAndArgs = getFormatAndArgs("equal", "!=", expected, actual, msgAndArgs...)
 
-	if expected == nil && actual == nil {
-		t.Errorf(msgAndArgs[0].(string), msgAndArgs[1:]...)
+	msg, args := getFormatAndArgs("equal", "!=", expected, actual, msgAndArgs...)
+
+	if !isEqual(expected, actual) {
+		t.Errorf(msg, args)
 		return false
 	}
 
-	if expected == nil || actual == nil {
-		return true
-	}
-
-	expected_value := reflect.ValueOf(expected)
-	actual_value := reflect.ValueOf(actual)
-
-	expected_kind := expected_value.Kind()
-	actual_kind := actual_value.Kind()
-
-	if !supportType(expected_kind) {
-		t.Errorf("%s: expected: UnSupported Type: %v", "equal", expected_value.Type())
-		t.FailNow()
-	}
-
-	if !supportType(actual_kind) {
-		t.Errorf("%s: actual: UnSupported Type: %v", "equal", actual_value.Type())
-		t.FailNow()
-	}
-
-	if useDeepEqual(expected_kind) && useDeepEqual(actual_kind) {
-		if !reflect.DeepEqual(expected, actual) {
-			t.Errorf(msgAndArgs[0].(string), msgAndArgs[1:]...)
-			return false
-		}
-		return true
-	}
-	if expected != actual {
-		t.Errorf(msgAndArgs[0].(string), msgAndArgs[1:]...)
-		return false
-	}
 	return true
 }
 
@@ -113,131 +72,149 @@ func AssertEqual(t T, expected, actual interface{}, msgAndArgs ...interface{}) b
 // Returns true iff arguments are not equal.
 func AssertNotEqual(t T, expected, actual interface{}, msgAndArgs ...interface{}) bool {
 	t.Helper()
-	msgAndArgs = getFormatAndArgs("not equal", "==", expected, actual, msgAndArgs...)
 
-	if expected == nil && actual == nil {
-		return true
-	}
+	msg, args := getFormatAndArgs("not equal", "==", expected, actual, msgAndArgs...)
 
-	if expected != nil || actual != nil {
-		t.Errorf(msgAndArgs[0].(string), msgAndArgs[1:]...)
+	if isEqual(expected, actual) {
+		t.Errorf(msg, args)
 		return false
 	}
 
-	expected_value := reflect.ValueOf(expected)
-	actual_value := reflect.ValueOf(actual)
-
-	expected_kind := expected_value.Kind()
-	actual_kind := actual_value.Kind()
-
-	if !supportType(expected_kind) {
-		t.Errorf("%s: expected: UnSupported Type: %v", "not equal", expected_value.Type())
-		t.FailNow()
-	}
-
-	if !supportType(actual_kind) {
-		t.Errorf("%s: actual: UnSupported Type: %v", "not equal", actual_value.Type())
-		t.FailNow()
-	}
-
-	if useDeepEqual(expected_kind) && useDeepEqual(actual_kind) {
-		if reflect.DeepEqual(expected, actual) {
-			t.Errorf(msgAndArgs[0].(string), msgAndArgs[1:]...)
-			return false
-		}
-		return true
-	}
-	if expected == actual {
-		t.Errorf(msgAndArgs[0].(string), msgAndArgs[1:]...)
-		return false
-	}
 	return true
 }
 
 // RequireEqual does the same as AssertEqual but fails caller test immediately.
 func RequireEqual(t T, expected, actual interface{}, msgAndArgs ...interface{}) {
 	t.Helper()
-	msgAndArgs = getFormatAndArgs("equal", "!=", expected, actual, msgAndArgs...)
+	msg, args := getFormatAndArgs("equal", "!=", expected, actual, msgAndArgs...)
 
-	if expected == nil && actual == nil {
-		return
-	}
-
-	if expected == nil || actual == nil {
-		t.Errorf(msgAndArgs[0].(string), msgAndArgs[1:]...)
+	if !isEqual(expected, actual) {
+		t.Errorf(msg, args)
 		t.FailNow()
 	}
-
-	expected_value := reflect.ValueOf(expected)
-	actual_value := reflect.ValueOf(actual)
-
-	expected_kind := expected_value.Kind()
-	actual_kind := actual_value.Kind()
-
-	if !supportType(expected_kind) {
-		t.Errorf("%s: expected: UnSupported Type: %v", "equal", expected_value.Type())
-		t.FailNow()
-	}
-
-	if !supportType(actual_kind) {
-		t.Errorf("%s: actual: UnSupported Type: %v", "equal", actual_value.Type())
-		t.FailNow()
-	}
-
-	if useDeepEqual(expected_kind) && useDeepEqual(actual_kind) {
-		if reflect.DeepEqual(expected, actual) {
-			return
-		}
-		t.Errorf(msgAndArgs[0].(string), msgAndArgs[1:]...)
-		t.FailNow()
-	}
-
-	if expected != actual {
-		t.Errorf(msgAndArgs[0].(string), msgAndArgs[1:]...)
-		t.FailNow()
-	}
-
 }
 
 // RequireNotEqual does the same as AssertNotEqual but fails caller test immediately.
 func RequireNotEqual(t T, expected, actual interface{}, msgAndArgs ...interface{}) {
 	t.Helper()
-	msgAndArgs = getFormatAndArgs("not equal", "==", expected, actual, msgAndArgs...)
-	if expected == nil && actual == nil {
-		t.Errorf(msgAndArgs[0].(string), msgAndArgs[1:]...)
+	msg, args := getFormatAndArgs("not equal", "==", expected, actual, msgAndArgs...)
+
+	if isEqual(expected, actual) {
+		t.Errorf(msg, args)
 		t.FailNow()
+	}
+}
+
+func isEqual(expected, actual any) bool {
+	if expected == nil && actual == nil {
+		return true
 	}
 
 	if expected == nil || actual == nil {
-		return
+		return false
 	}
 
-	expected_value := reflect.ValueOf(expected)
-	actual_value := reflect.ValueOf(actual)
-
-	expected_kind := expected_value.Kind()
-	actual_kind := actual_value.Kind()
-
-	if !supportType(expected_kind) {
-		t.Errorf("%s: expected: UnSupported Type: %v", "not equal", expected_value.Type())
-		t.FailNow()
+	if !supportType(expected) || !supportType(actual) {
+		return false
 	}
 
-	if !supportType(actual_kind) {
-		t.Errorf("%s: actual: UnSupported Type: %v", "not equal", actual_value.Type())
-		t.FailNow()
+	if isCompareSlice(expected) && isCompareSlice(actual) {
+		return сompareSlice(expected, actual)
 	}
 
-	if useDeepEqual(expected_kind) && useDeepEqual(actual_kind) {
-		if !reflect.DeepEqual(expected, actual) {
-			return
+	if isCompareMap(expected) && isCompareMap(actual) {
+		a, _ := expected.(map[string]string)
+		b, _ := actual.(map[string]string)
+		return compareMapStr(a, b)
+	}
+
+	return expected == actual
+}
+
+func isNilReflect(value any) bool {
+	rValue := reflect.ValueOf(value)
+	return rValue.IsNil()
+
+}
+
+func isCompareSlice(value any) bool {
+	switch value.(type) {
+	case []int:
+		return true
+	case []byte:
+		return true
+	default:
+		return false
+	}
+}
+
+func сompareSlice(a any, b any) bool {
+	if isNilReflect(a) && isNilReflect(b) {
+		return true
+	}
+
+	if isNilReflect(a) || isNilReflect(b) {
+		return false
+	}
+
+	if isSliceInt(a) && isSliceInt(b) {
+		a := a.([]int)
+		b := b.([]int)
+		return slices.Equal(a, b)
+	}
+
+	if isSliceByte(a) && isSliceByte(b) {
+		a := a.([]byte)
+		b := b.([]byte)
+		return slices.Equal(a, b)
+	}
+	return false
+}
+
+func isSliceInt(value any) bool {
+	switch value.(type) {
+	case []int:
+		return true
+	default:
+		return false
+	}
+}
+
+func isSliceByte(value any) bool {
+	switch value.(type) {
+	case []byte:
+		return true
+	default:
+		return false
+	}
+}
+
+func isCompareMap(value any) bool {
+	switch value.(type) {
+	case map[string]string:
+		return true
+	default:
+		return false
+	}
+}
+
+func compareMapStr(a map[string]string, b map[string]string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	if isNilReflect(a) && isNilReflect(b) {
+		return true
+	}
+
+	if isNilReflect(a) || isNilReflect(b) {
+		return false
+	}
+
+	for kA, vA := range a {
+		if vB, ok := b[kA]; !ok || vB != vA {
+			return false
 		}
-		t.Errorf(msgAndArgs[0].(string), msgAndArgs[1:]...)
-		t.FailNow()
 	}
-
-	if expected == actual {
-		t.Errorf(msgAndArgs[0].(string), msgAndArgs[1:]...)
-		t.FailNow()
-	}
+	return true
 }
