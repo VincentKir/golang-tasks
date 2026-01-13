@@ -29,7 +29,8 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"sort"
+	"slices"
+	"strings"
 )
 
 /*
@@ -108,10 +109,10 @@ func recursiveLookupDir(out io.Writer, path string, printFile bool, prefix strin
 		dirEntres = excludeFiles(dirEntres)
 	}
 
-	sort.Slice(
+	slices.SortFunc(
 		dirEntres,
-		func(i, j int) bool {
-			return dirEntres[i].Name() < dirEntres[j].Name()
+		func(a, b os.DirEntry) int {
+			return strings.Compare(a.Name(), b.Name())
 		},
 	)
 
