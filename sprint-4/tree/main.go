@@ -25,8 +25,12 @@ https://stackoverflow.com/questions/32151776/visualize-tree-in-bash-like-the-out
 */
 
 import (
+	"fmt"
 	"io"
 	"os"
+	"path/filepath"
+	"slices"
+	"strings"
 )
 
 /*
@@ -57,6 +61,8 @@ const (
 	LAST_TAB        = "\t"
 	EMPTY_FILE      = "empty"
 	ROOT_PREFIX     = ""
+	LEVEL_SPACE     = "    "
+	LEVEL_PIPE      = "|   "
 
 	USE_RECURSION_ENV_KEY = "RECURSIVE_TREE"
 	USE_RECURSION_ENV_VAL = "YES"
@@ -82,6 +88,101 @@ func main() {
 // Write `path` dir listing to `out`. If `prinFiles` is set, files is listed along with directories.
 func dirTree(out io.Writer, path string, printFiles bool) error {
 	// Function to implement, signature is given, don't touch it.
+
+	err := recursiveLookupDir(out, path, printFiles, ROOT_PREFIX)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func recursiveLookupDir(out io.Writer, path string, printFile bool, prefix string) error {
+	dirEntres, err := os.ReadDir(path)
+	if err != nil {
+		return fmt.Errorf(
+			"Error Read Dir: %s \n Error: %w", path, err,
+		)
+	}
+
+	if !printFile {
+		dirEntres = excludeFiles(dirEntres)
+	}
+
+	slices.SortFunc(
+		dirEntres,
+		func(a, b os.DirEntry) int {
+			return strings.Compare(a.Name(), b.Name())
+		},
+	)
+
+	lastEntry := len(dirEntres) - 1
+
+	for i, obj := range dirEntres {
+		objPath := filepath.Join(path, obj.Name())
+		objName := obj.Name()
+		isLastEntry := i == lastEntry
+
+		printTrunk(out, isLastEntry, prefix)
+		levelPrefix := getLevelPrefix(isLastEntry, prefix)
+
+		if obj.IsDir() {
+			printlnDir(out, objName)
+			recursiveLookupDir(out, objPath, printFile, levelPrefix)
+			continue
+		}
+
+		printlnFile(out, obj, objName)
+
+	}
+	return nil
+}
+
+func excludeFiles(dirEntres []os.DirEntry) []os.DirEntry {
+	var objs []os.DirEntry
+	for _, entry := range dirEntres {
+		if entry.IsDir() {
+			objs = append(objs, entry)
+		}
+	}
+	return objs
+}
+
+func getLevelPrefix(isLastEntry bool, prefix string) string {
+	if isLastEntry {
+		return prefix + LAST_TAB
+	}
+	return prefix + TRUNC_TAB
+}
+
+func printTrunk(out io.Writer, isLastEntry bool, levelPrefix string) {
+	if isLastEntry {
+		out.Write([]byte(levelPrefix + LAST_BRANCH))
+	} else {
+		out.Write([]byte(levelPrefix + BRANCHING_TRUNK))
+	}
+}
+
+func printlnDir(out io.Writer, dirName string) {
+	out.Write([]byte(dirName))
+	out.Write([]byte(EOL))
+}
+
+func printlnFile(out io.Writer, file os.DirEntry, fileName string) error {
+	out.Write([]byte(fileName))
+	fileinfo, err := file.Info()
+	if err != nil {
+		return fmt.Errorf(
+			"Error Get Stat File: %s \n Error: %w", fileName, err,
+		)
+	}
+	sizeFile := fileinfo.Size()
+	if sizeFile == 0 {
+		fmt.Fprintf(out, " (%s)", EMPTY_FILE)
+	} else {
+		fmt.Fprintf(out, " (%db)", sizeFile)
+	}
+	out.Write([]byte(EOL))
 
 	return nil
 }
