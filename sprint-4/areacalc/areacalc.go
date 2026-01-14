@@ -25,8 +25,9 @@ func (rectangle Rectangle) Type() string {
 	return rectangle.t
 }
 
+var _ Shape = (*Rectangle)(nil)
+
 func NewRectangle(sideA float64, sideB float64, t string) *Rectangle {
-	var _ Shape = Rectangle{}
 	return &Rectangle{sideA: sideA, sideB: sideB, t: t}
 }
 
@@ -43,8 +44,9 @@ func (circle Circle) Area() float64 {
 	return pi * (circle.radius * circle.radius)
 }
 
+var _ Shape = (*Circle)(nil)
+
 func NewCircle(radius float64, t string) *Circle {
-	var _ Shape = Circle{}
 	return &Circle{radius: radius, t: t}
 }
 

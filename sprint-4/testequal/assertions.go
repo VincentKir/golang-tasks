@@ -123,8 +123,8 @@ func isEqual(expected, actual any) bool {
 	}
 
 	if isCompareMap(expected) && isCompareMap(actual) {
-		a, _ := expected.(map[string]string)
-		b, _ := actual.(map[string]string)
+		a := expected.(map[string]string)
+		b := actual.(map[string]string)
 		return compareMapStr(a, b)
 	}
 
