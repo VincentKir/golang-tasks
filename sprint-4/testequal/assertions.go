@@ -58,7 +58,7 @@ func AssertEqual(t T, expected, actual interface{}, msgAndArgs ...interface{}) b
 	msg, args := getFormatAndArgs("equal", "!=", expected, actual, msgAndArgs...)
 
 	if !isEqual(expected, actual) {
-		t.Errorf(msg, args)
+		t.Errorf(msg, args...)
 		return false
 	}
 
@@ -76,7 +76,7 @@ func AssertNotEqual(t T, expected, actual interface{}, msgAndArgs ...interface{}
 	msg, args := getFormatAndArgs("not equal", "==", expected, actual, msgAndArgs...)
 
 	if isEqual(expected, actual) {
-		t.Errorf(msg, args)
+		t.Errorf(msg, args...)
 		return false
 	}
 
@@ -89,7 +89,7 @@ func RequireEqual(t T, expected, actual interface{}, msgAndArgs ...interface{}) 
 	msg, args := getFormatAndArgs("equal", "!=", expected, actual, msgAndArgs...)
 
 	if !isEqual(expected, actual) {
-		t.Errorf(msg, args)
+		t.Errorf(msg, args...)
 		t.FailNow()
 	}
 }
@@ -100,7 +100,7 @@ func RequireNotEqual(t T, expected, actual interface{}, msgAndArgs ...interface{
 	msg, args := getFormatAndArgs("not equal", "==", expected, actual, msgAndArgs...)
 
 	if isEqual(expected, actual) {
-		t.Errorf(msg, args)
+		t.Errorf(msg, args...)
 		t.FailNow()
 	}
 }
